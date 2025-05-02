@@ -1,0 +1,16 @@
+# Web framework
+fastapi>=0.82.0
+uvicorn[standard]>=0.18.0
+
+# LLM & RAG
+langchain>=0.0.200
+openai>=0.27.0
+
+# Vector store
+faiss-cpu>=1.7.4
+
+# Jira client
+jira>=3.3.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
