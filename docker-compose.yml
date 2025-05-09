@@ -1,11 +1,14 @@
-version: '3.8'
 services:
   bot:
     build: .
-    volumes:
-      - ./faiss_index:/app/faiss_index      # persist index
-      - ./data/wiki:/data/wiki              # wiki source
-    ports:
-      - '8000:8000'
     env_file:
-      - .env
+      - ./.env
+    volumes:
+      - ./data/pdf:/data/pdf       # your PDF folder
+      - ./faiss_index:/faiss_index  # ← and here
+    ports:
+      - '8501:8501'
+    environment:
+      - OPENAI_API_KEY- OPENAI_API_KEY
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_ENABLECORS=false
