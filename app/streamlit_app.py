@@ -1,33 +1,39 @@
-import os
-from dotenv import load_dotenv
 import streamlit as st
-from langchain.chat_models import ChatOpenAI
+from langchain.llms import HuggingFacePipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 from langchain.chains import RetrievalQA
-from langchain_community.vectorstores import FAISS
-#from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import FAISS
 
-# Load env
-API_KEY = os.getenv("OPENAI_API_KEY")
-if not API_KEY:
-    raise ValueError("Missing OPENAI_API_KEY")
+# Paths in the container
+INDEX_DIR = "/faiss_index"
 
-# Sidebar
-st.sidebar.title("Settings")
-model_name = st.sidebar.selectbox("Model", ["gpt-3.5-turbo", "gpt-4o-mini"])
-k = st.sidebar.slider("Top-k docs", 1, 10, 5)
+# 1. Load index + embeddings
+embedding = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+store = FAISS.load_local(
+    INDEX_DIR,
+    embedding,
+    allow_dangerous_deserialization=True) # langchain guardrail for untrusted picks
 
-# Load vector store
-emb = OpenAIEmbeddings(openai_api_key=API_KEY)
-store = FAISS.load_local("../faiss_index", emb)
-qa = RetrievalQA.from_chain_type(
-    llm=ChatOpenAI(model_name=model_name, openai_api_key=API_KEY, temperature=0),
-    retriever=store.as_retriever(k=k),
+# 2. Prepare a local HF LLM (e.g. GPT-2 or a larger one if you like)
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+model = AutoModelForCausalLM.from_pretrained("gpt2")
+text_gen = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    max_new_tokens=200,
+    do_sample=True,
+    temperature=0.7,
 )
+llm = HuggingFacePipeline(pipeline=text_gen)
 
-st.title("📚 PDF-Based Support Bot")
-query = st.text_input("Ask a question about your docs:")
-if query:
+# 3. Build RAG QA
+qa = RetrievalQA.from_chain_type(llm=llm, retriever=store.as_retriever(k=5))
+
+st.title("Local PDF Q&A Bot")
+query = st.text_input("Ask a question about your PDFs:")
+if st.button("Submit") and query:
     with st.spinner("Thinking…"):
         answer = qa.run(query)
     st.markdown("**Answer:**")

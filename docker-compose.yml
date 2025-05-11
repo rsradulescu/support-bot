@@ -8,7 +8,3 @@ services:
       - ./faiss_index:/faiss_index  # ← and here
     ports:
       - '8501:8501'
-    environment:
-      - OPENAI_API_KEY- OPENAI_API_KEY
-      - STREAMLIT_SERVER_HEADLESS=true
-      - STREAMLIT_SERVER_ENABLECORS=false

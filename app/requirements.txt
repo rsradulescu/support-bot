@@ -2,21 +2,19 @@
 langchain>=0.0.320
 langchain-community>=0.3.00
 langchain-openai>=0.3.00
-
 openai>=0.28.2
 tiktoken>=0.4.0
-
 # Vector store
 faiss-cpu>=1.7.4
-
 # Jira client
 jira>=3.3.0
-
 # Environment variable loading
 python-dotenv>=1.0.0
-
 # IDE
 streamlit>=1.26.1
-
 # pdf knoledge
 pypdf>=3.5.0
+# HuggingFace LLM
+sentence-transformers>=2.2.2
+transformers>=4.34.0
+torch>=2.0.0

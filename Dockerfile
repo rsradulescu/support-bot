@@ -3,7 +3,7 @@ WORKDIR /app
 
 # System deps (PDF parsing, FAISS)
 RUN apt-get update && \
-    apt-get install -y build-essential libsndfile1 && \
+    apt-get install -y build-essential libopenblas-dev libomp-dev && \
     rm -rf /var/lib/apt/lists/*
 
 COPY app/requirements.txt .
