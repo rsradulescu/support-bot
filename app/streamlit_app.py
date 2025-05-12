@@ -31,10 +31,33 @@ llm = HuggingFacePipeline(pipeline=text_gen)
 # 3. Build RAG QA
 qa = RetrievalQA.from_chain_type(llm=llm, retriever=store.as_retriever(k=5))
 
+# Setup the UI
+st.set_page_config(page_title="PDF Q&A Bot", layout="wide")
 st.title("Local PDF Q&A Bot")
-query = st.text_input("Ask a question about your PDFs:")
-if st.button("Submit") and query:
+
+if "history" not in st.session_state:
+    st.session_state.history = []   # ← remembers all past Q&A pairs
+
+# Always-visible input form
+with st.form(key="query_form", clear_on_submit=True):
+    query = st.text_input("Ask a question about your PDFs:")
+    submit = st.form_submit_button("Submit")
+
+# Handle form submission
+if submit and query:
     with st.spinner("Thinking…"):
-        answer = qa.run(query)
-    st.markdown("**Answer:**")
-    st.write(answer)
+        result = qa(query)
+        answer = result["result"] if isinstance(result, dict) else result
+        # ─── Step 3: Concise, cleaned answers ───
+        answer = answer.strip().replace("\n\n", "\n")
+        # Save into session history
+        st.session_state.history.append((query, answer))
+
+# Display the conversation
+for i, (q, a) in enumerate(reversed(st.session_state.history)):
+    st.markdown(f"**Q{i+1}:** {q}")
+    st.markdown(f"**A{i+1}:** {a}")
+    st.markdown("---")
+
+# Prompt to keep asking
+st.markdown("*Ask another question above…*")
